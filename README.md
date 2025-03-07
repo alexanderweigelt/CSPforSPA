@@ -21,6 +21,7 @@ Um eine fundierte Analyse durchzuführen, werden für jedes der drei Frameworks 
 
 Die getesteten CSP-Header sind:
 - `script-src`
+- `style-src`
 - `object-src`
 - `base-uri`
 - `require-trusted-types-for`
@@ -29,6 +30,7 @@ Beispiel für eine sichere Content Security Policy (CSP) für Browser mit einer 
 
 ```
 script-src 'strict-dynamic' 'nonce-rAnd0m123' 'unsafe-inline' http: https:;
+style-src 'self';
 object-src 'none';
 base-uri 'none';
 require-trusted-types-for 'script';
@@ -41,6 +43,31 @@ Zur Bereitstellung der Testanwendungen wird entweder ein Express-Server oder ein
 Die CSP-Konformität wird anhand folgender Kriterien geprüft:
 - Die gesetzte Content Security Policy (CSP) muss den Test des [CSP Evaluator](https://csp-evaluator.withgoogle.com/) bestehen.
 - Automatisierte Tests werden mit dem Tool [csp_evaluator](https://www.npmjs.com/package/csp_evaluator) durchgeführt.
+
+## Probleme mit Nonces und Caching
+
+Ein **Nonce** (`'nonce-rAnd0m123'`) ist ein einmaliger, zufällig generierter Wert, der für jede HTTP-Anfrage neu erstellt werden muss. Während Nonces nützlich sind, um Inline-Skripte oder Inline-Styles explizit zu erlauben, bringen sie einige Probleme mit sich:
+
+- **Nicht wiederverwendbar:** Jeder Nonce muss für jede Anfrage neu generiert werden, wodurch Caching auf CDNs oder im Browser nicht funktioniert.
+- **Inkonsistenz zwischen Seitenladevorgängen:** Falls eine gecachte HTML-Datei einen veralteten Nonce enthält, wird dieser von der CSP blockiert.
+- **Statische HTML-Seiten betroffen:** Bei statischen Webseiten ist die Nutzung von Nonces problematisch, da der CSP-Header mit jeder Anfrage variieren müsste.
+
+### **Empfohlene Alternativen zu Nonces für CSP und Caching**
+Um die Kompatibilität mit Caching zu verbessern, sind folgende Alternativen empfehlenswert:
+
+1. **Hashes verwenden:** Anstatt eines Nonces kann ein Hash des Inline-Styles im CSP-Header hinterlegt werden, sodass sich gecachte Inhalte nicht ändern müssen.
+   ```http
+   Content-Security-Policy: style-src 'sha256-XyZ123...';
+   ```
+   *Vorteil:* Erlaubt gezielt bestimmte Inline-Styles, ohne einen neuen Wert bei jeder Anfrage zu generieren.
+
+2. **Externe Stylesheets nutzen:** Der sicherste und am besten mit Caching kompatible Ansatz ist, Inline-Styles komplett zu vermeiden und stattdessen alle Stile in externe CSS-Dateien auszulagern.
+   ```html
+   <link rel="stylesheet" href="styles.css">
+   ```
+   *Vorteil:* Ermöglicht eine strikte CSP-Policy (`style-src 'self'` oder eine spezifische Domain) und optimiert die Performance durch Caching.
+
+3. **Dynamische CSP-Anpassung mit Server-Side Rendering:** Falls dynamische Inhalte mit Inline-Styles benötigt werden, könnte eine serverseitige Lösung mit CSP-Headern pro Anfrage verwendet werden. Dies ist jedoch nicht mit Client-Side Rendering (CSR) kompatibel.
 
 ## Erwartete Probleme
 
