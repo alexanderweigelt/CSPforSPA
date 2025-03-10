@@ -1,0 +1,32 @@
+:host {
+  display: block;
+}
+
+article {
+  border: 2px solid red;
+  padding: 16px;
+  background-color: #ffe6e6;
+  color: #d00000;
+  font-family: Arial, sans-serif;
+}
+
+article h2 {
+  color: #b30000;
+}
+
+article p {
+  font-weight: bold;
+}
+
+pre {
+  background-color: #f4f4f4;
+  padding: 10px;
+  border: 1px solid #ccc;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+code {
+  font-family: "Courier New", monospace;
+  color: #d00000;
+}

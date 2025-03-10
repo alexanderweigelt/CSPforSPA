@@ -82,3 +82,28 @@ Zur Vermeidung von CSP-Verletzungen werden alternative Implementierungsmethoden 
 - Nutzung externer Stylesheets anstelle von Inline-Styles.
 - Möglichkeiten zur Deaktivierung von Inline-Styles in den Frameworks.
 - Konfigurationseinstellungen, die die Erzeugung unsicherer Stile verhindern.
+
+## 1. CSP-Implementierung mit Stencil.js
+
+Es wurde ein Beispielprojekt mit **Stencil.js (Version 4)** erstellt, das im Verzeichnis `packages/stencil-app` zu finden ist. Ziel war es, die Einhaltung der Content Security Policy (CSP) im Zusammenspiel von Stencil.js und einem Express-Server zu analysieren. Dieses Beispiel implementiert eine sichere CSP-Policy mithilfe von Nonces, die dynamisch für jede Anfrage generiert werden.
+
+### Verhalten von Stencil.js bei ungültigem CSP-Code
+
+Stencil.js bietet von Haus aus Mechanismen, um CSP-Verletzungen beim Build-Prozess zu beheben und dadurch die Einhaltung strikter Richtlinien sicherzustellen. Ein Beispiel für invaliden CSP-Code ist die Verwendung von Inline-Skripten oder Inline-Styles (z. B. ein `<script>alert(...)</script>` oder ein Inline-CSS-Stil). Stencil.js transformiert solchen Code automatisch in externe JavaScript- oder CSS-Dateien.
+
+#### Beispiel:
+In einer Komponente wie `app-invalid` mit folgendem Inline-Skript und Stil:
+```html
+<p style={{ color: 'red' }}>Dieser Text nutzt ein Inline-Style und verletzt die CSP.</p>
+<script>alert('Dies ist ein unsicheres Inline-Skript!');</script>
+```
+
+erstellt Stencil.js beim Build-Prozess eine separate JavaScript-Datei, beispielsweise `p-01883f97.system.entry.js`, die den (`alert`) enthält, anstelle das Skript direkt in das HTML einzubetten. Ebenso werden Inline-Stile in die definierte CSS-Datei (`app-invalid.css`) ausgelagert, die dann global oder innerhalb des Shadow-DOMs referenziert wird.
+
+#### Vorteil:
+- **CSP-Konformität**: Durch diese automatische Transformation vermeidet Stencil.js problematischen Inline-Code, der ohne entsprechende Nonce- oder Hash-Regeln von einer strikten CSP blockiert werden würde.
+- **Sicherheit**: Inline-Inhalte werden stets in eigenständigen Dateien verwaltet, was verhindert, dass unsicherer Code sofort im DOM ausgeführt wird.
+- **Performance**: Zusätzliche Vorteile ergeben sich durch das Caching der ausgelagerten Dateien, da sie unabhängig von der HTML-Struktur bereitgestellt werden können.
+
+#### Fazit:
+Stencil.js verhält sich äußerst robust gegenüber ungültigem CSP-Code. Selbst wenn Entwickler Inline-Styles oder Skripte verwenden, sorgt der Build-Prozess dafür, dass diese Elemente den CSP-Regeln entsprechen, indem sie nach externen und sicheren Ressourcen verschoben werden. Dies ermöglicht eine nahtlose Entwicklung und eine herausragende Sicherheitsunterstützung in produktiven Umgebungen.
