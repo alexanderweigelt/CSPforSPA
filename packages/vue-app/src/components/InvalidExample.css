@@ -1,0 +1,5 @@
+/* Externe CSS für das invalide Beispiel, diese Datei ist valide im Kontext der CSP */
+.unsafe-container {
+  padding: 1rem;
+  background-color: #ffe5e5;
+}
