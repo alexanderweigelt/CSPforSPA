@@ -100,10 +100,29 @@ In einer Komponente wie `app-invalid` mit folgendem Inline-Skript und Stil:
 
 erstellt Stencil.js beim Build-Prozess eine separate JavaScript-Datei, beispielsweise `p-01883f97.system.entry.js`, die den (`alert`) enthält, anstelle das Skript direkt in das HTML einzubetten. Ebenso werden Inline-Stile in die definierte CSS-Datei (`app-invalid.css`) ausgelagert, die dann global oder innerhalb des Shadow-DOMs referenziert wird.
 
-#### Vorteil:
+#### Fazit:
 - **CSP-Konformität**: Durch diese automatische Transformation vermeidet Stencil.js problematischen Inline-Code, der ohne entsprechende Nonce- oder Hash-Regeln von einer strikten CSP blockiert werden würde.
 - **Sicherheit**: Inline-Inhalte werden stets in eigenständigen Dateien verwaltet, was verhindert, dass unsicherer Code sofort im DOM ausgeführt wird.
 - **Performance**: Zusätzliche Vorteile ergeben sich durch das Caching der ausgelagerten Dateien, da sie unabhängig von der HTML-Struktur bereitgestellt werden können.
 
-#### Fazit:
 Stencil.js verhält sich äußerst robust gegenüber ungültigem CSP-Code. Selbst wenn Entwickler Inline-Styles oder Skripte verwenden, sorgt der Build-Prozess dafür, dass diese Elemente den CSP-Regeln entsprechen, indem sie nach externen und sicheren Ressourcen verschoben werden. Dies ermöglicht eine nahtlose Entwicklung und eine herausragende Sicherheitsunterstützung in produktiven Umgebungen.
+
+## 2. CSP-Implementierung mit React
+
+Die Implementierung der Content-Security-Policy (CSP) in Verbindung mit React weist mehrere Besonderheiten auf, die sowohl die Stärken als auch die Grenzen der Frameworksicherheit verdeutlichen. Während React von Natur aus Inline-JavaScript beispielsweise innerhalb von JSX (z. B. `dangerouslySetInnerHTML`) als potenzielles Sicherheitsrisiko behandelt und entsprechende Schutzmechanismen bietet, gibt es dennoch Situationen, in denen CSP-Verletzungen bewusst oder unbewusst auftreten können.
+
+#### Beobachtungen aus der React-Implementierung
+1. **Dynamisches Hinzufügen eines Inline-Skripts:**
+   Im Fall der Komponente `InvalidExample` wurde über JavaScript dynamisch ein `<script>`-Tag samt unsicherem Inline-JavaScript erstellt. Obwohl CSP Inline-Skripte standardmäßig blockiert, wird das dynamisch eingefügte Script dennoch ausgeführt. Dies geschieht, weil die **CSP-Richtlinie `script-src` standardmäßig DOM-basiertes dynamisches Einfügen erlaubt**, wenn keine restriktivere Konfiguration wie `'unsafe-inline'` ausgeschlossen oder Nonces/Hashes verlangt werden. Ohne entsprechende Einschränkungen bleibt das dynamische Script ausführbar.
+
+2. **Blockierung des `<style>`-Tags:**
+   Der `<style>`-Tag, der dynamisch mit der Klasse `.unsafe` im JSX-Template eingefügt wurde, wird korrekt durch die CSP blockiert. Anders als beim Skript fordert der Browser beim CSS-Rendering strikt, dass das `style-src`-Attribut in der CSP erlaubt sein muss. Fehlt diese Regel oder wird sie durch eine restriktive Policy (z. B. `style-src 'self'`) blockiert, wird dieses Inline-CSS vollständig ignoriert.
+
+3. **Ausführen von `style`-Attributen:**
+   Im Gegensatz zum blockierten `<style>`-Tag werden Inline-Styles, die mithilfe des HTML-Attributs `style` direkt im Tag definiert sind, korrekt ausgeführt. Dies liegt daran, dass React Inline-Styles nicht als unsicheres JavaScript behandelt, sondern als Objekt manipuliert und vor der DOM-Einfügung überprüft. Die CSP-Blockade umgeht dies, da der Style-Attributwert (z. B. `style={{ color: 'red' }}`) als DOM Property (Element-Attribut) und nicht als `<style>`-Inhalt betrachtet wird.
+
+#### Fazit
+React bietet einen nativen Schutz gegen viele potenzielle Sicherheitslücken, insbesondere bei der Handhabung von unsicheren JavaScript-Operationen innerhalb von JSX. Gleichzeitig zeigt die Implementierung aber auch, dass Browser-Verhalten bei dynamisch eingefügten Inhalten (wie Skripten) explizite CSP-Anpassungen erfordert. Daher ist es essenziell:
+- **Strenge CSP-Regeln** wie `script-src` mit Nonces oder Hashes einzusetzen;
+- **Inline-JavaScript explizit zu blockieren** (`script-src 'self'` und Ausschluss von `'unsafe-inline'`);
+- Dynamische Manipulationen zu hinterfragen und wo möglich zu vermeiden.
