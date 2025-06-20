@@ -126,3 +126,73 @@ React bietet einen nativen Schutz gegen viele potenzielle Sicherheitslücken, in
 - **Strenge CSP-Regeln** wie `script-src` mit Nonces oder Hashes einzusetzen;
 - **Inline-JavaScript explizit zu blockieren** (`script-src 'self'` und Ausschluss von `'unsafe-inline'`);
 - Dynamische Manipulationen zu hinterfragen und wo möglich zu vermeiden.
+
+## 3. CSP-Implementierung mit Vue.js
+
+Die Analyse der **Vue.js (Version 3.5)** Implementation zeigt einen fortschrittlichen Umgang mit Content Security Policy. Vue.js bietet robuste Sicherheitsmechanismen, die bereits im Core-Framework integriert sind [[1]](https://vuejs.org/guide/best-practices/security).
+
+### Native Sicherheitsfunktionen
+
+Vue.js 3.5 implementiert mehrere wichtige Sicherheitsfunktionen:
+
+1. **Automatische XSS-Prävention:**
+   - Automatisches Escaping von HTML in Template-Interpolationen
+   - Sichere Bindungsmechanismen für Attribute
+   - Vorbeugung gegen Template-Injection-Angriffe
+
+2. **CSP-Konformität:**
+   - Kompilierung von Templates in sicheren JavaScript-Code
+   - Unterstützung für externe Stylesheets
+   - Vermeidung von `eval()` und unsicheren dynamischen Ausführungen
+
+3. **Sicheres Style-Handling:**
+   - Unterstützung für Scoped Styles
+   - Automatische Kompilierung in externe CSS-Dateien
+   - Sichere Style-Bindings ohne Inline-CSS
+
+### Analyseergebnisse der Testfälle
+
+Die Untersuchung unserer Beispielimplementierung zeigt:
+
+1. **Valide Implementierung:**
+   - Externe CSS-Dateien werden korrekt eingebunden
+   - Event-Handler werden sicher kompiliert
+   - Keine Verwendung von unsicheren inline-Skripten
+
+2. **Sicherheitsverletzungen:**
+   - Inline-Styles werden blockiert
+   - Dynamisch eingefügte Skripte werden verhindert
+   - CSP-Verletzungen werden korrekt gemeldet
+
+### Empfehlungen für Vue.js Projekte
+
+1. **CSP-Konfiguration:**
+   ```javascript
+   // Empfohlene Basis-CSP für Vue.js 3.5
+   {
+     "Content-Security-Policy": [
+       "default-src 'self'",
+       "script-src 'self'",
+       "style-src 'self'",
+       "img-src 'self' data:",
+       "object-src 'none'"
+     ].join('; ')
+   }
+   ```
+
+2. **Best Practices:**
+   - Verwendung von externen Stylesheet-Dateien
+   - Nutzung von Scoped Styles für Komponenten
+   - Vermeidung von inline event handlers
+   - Implementierung von strict CSP ohne 'unsafe-inline'
+
+### Fazit
+
+Vue.js 3.5 zeigt sich als sehr ausgereift im Umgang mit Content Security Policy. Das Framework:
+
+- Bietet robuste Sicherheitsmechanismen out-of-the-box
+- Unterstützt moderne CSP-Richtlinien ohne Kompromisse
+- Ermöglicht sichere Entwicklung ohne zusätzliche Plugins
+- Verhindert gängige Sicherheitsprobleme automatisch
+
+Im Vergleich zu React und Stencil.js bietet Vue.js die umfassendste native Unterstützung für CSP-Konformität, was es besonders geeignet für sicherheitskritische Anwendungen macht.

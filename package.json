@@ -5,7 +5,8 @@
   "scripts": {
     "build": "pnpm --recursive --if-present build",
     "start:stencil": "pnpm --filter=stencil-app start",
-    "start:react": "pnpm --filter=react-app start"
+    "start:react": "pnpm --filter=react-app start",
+    "start:vue": "pnpm --filter=vue-app start"
   },
   "keywords": [
     "csp",
